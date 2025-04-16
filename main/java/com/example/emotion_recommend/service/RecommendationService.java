@@ -23,7 +23,7 @@ public class RecommendationService {
             "사용자의 감정은 '%s'입니다. 해당 감정에 어울리는 **영화, 노래, 책, 드라마**를 각각 하나씩 추천해주세요.\n" +
             "- 추천은 매번 다르게 해주세요.\n" +
             "- 제목은 **반드시 한국어**로 출력해주세요.\n" +
-            "- 형식: 영화: {제목} / 노래: {제목} / 책책: {제목} / 드라마: {제목}",
+            "- 형식: 영화: {제목} / 노래: {제목} / 책: {제목} / 드라마: {제목}",
             emotion);
 
         String gptResponse = chatGptClient.getEmotionFromText(prompt);

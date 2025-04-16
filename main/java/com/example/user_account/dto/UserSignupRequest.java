@@ -1,9 +1,13 @@
 package com.example.user_account.dto;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
+
+import java.time.LocalDate;
 
 @Data
 @NoArgsConstructor
@@ -22,8 +26,8 @@ public class UserSignupRequest {
     @NotBlank(message = "이름은 필수 입력 항목입니다.")
     private String username;
 
-    @NotBlank(message = "생년월일은 필수 입력 항목입니다.")
-    private String birthdate;
+    @NotNull(message = "생년월일은 필수 입력 항목입니다.")
+    private LocalDate birthdate;
 
     @NotBlank(message = "전화번호는 필수 입력 항목입니다.")
     private String phoneNumber;

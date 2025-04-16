@@ -63,6 +63,12 @@ public class JwtUtil {
         }
     }
 
+    public Long extractUserId(String token) {
+        Claims claims = extractAllClaims(token);
+        return claims.get("userId", Integer.class).longValue(); // or Long.class
+    }
+    
+
     // ✅ 내부용: 토큰 파싱 메서드
     private Claims parseClaims(String token) {
         return Jwts.parserBuilder()
