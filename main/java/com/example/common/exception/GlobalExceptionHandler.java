@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.hibernate.exception.ConstraintViolationException;
 import java.sql.SQLIntegrityConstraintViolationException;
@@ -50,6 +51,40 @@ public class GlobalExceptionHandler {
         }
 
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(errors);
+    }
+
+    // 금지어 포함 시 따로 처리
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Map<String, String>> handleRuntimeException(RuntimeException ex) {
+        String msg = ex.getMessage();
+    
+        // 금지어 필터에 걸린 경우
+        if (msg != null && msg.contains("부적절한 표현")) {
+            return ResponseEntity
+                .badRequest()
+                .body(Map.of("message", msg));
+        }
+
+        // 그 외 일반 오류
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "서버 오류가 발생했습니다."));
+    }
+
+        // 커스텀 BadRequestException 처리
+        @ExceptionHandler(BadRequestException.class)
+        public ResponseEntity<Map<String, String>> handleBadRequest(BadRequestException ex) {
+            return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", ex.getMessage()));
+        }
+
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<Map<String, String>> handleIllegalArgument(IllegalArgumentException e) {
+        Map<String, String> error = new HashMap<>();
+        error.put("message", e.getMessage());  // ✅ 한글 메시지 그대로 전달
+        return ResponseEntity.badRequest()
+                .header("Content-Type", "application/json; charset=UTF-8")
+                .body(error);
     }
 
     // 그 외 예외 처리 (선택)

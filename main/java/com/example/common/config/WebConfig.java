@@ -1,18 +1,28 @@
 package com.example.common.config;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.web.servlet.config.annotation.CorsRegistry;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.web.servlet.config.annotation.*;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
 
+    @Value("${frontend.origin:http://localhost:3000}")
+    private String frontendOrigin;
+
     @Override
     public void addCorsMappings(CorsRegistry registry) {
-        registry.addMapping("/**") // 모든 경로에 대해
-                .allowedOrigins("*") // 모든 도메인 허용 (개발용)
-                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS") // 허용 메서드
-                .allowedHeaders("*") // 모든 헤더 허용
-                .allowCredentials(false); // 인증정보(쿠키) 전달 허용 여부
+        registry.addMapping("/**")
+                .allowedOrigins(frontendOrigin) // 예: http://localhost:3000 or 실제 도메인
+                .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
+                .allowedHeaders("*")
+                .allowCredentials(true); // 인증정보(Cookie, Authorization 헤더 등) 허용
+    }
+
+    @Override
+    public void addResourceHandlers(ResourceHandlerRegistry registry) {
+        // 스토리 이미지 업로드 파일 접근 허용
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:uploads/");
     }
 }
