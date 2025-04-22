@@ -1,5 +1,6 @@
 package com.example.user_account.service;
 
+import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -17,6 +18,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final VerificationCodeService verificationCodeService;
 
     public void registerUser(UserSignupRequest dto) {
         try {
@@ -37,8 +39,11 @@ public class UserService {
     }
 
     public UserResponseDto signup(UserSignupRequest request) {
-        
 
+        // ✅ 이메일 인증 여부 확인
+         if (!verificationCodeService.isEmailVerified(request.getEmail())){
+            throw new IllegalArgumentException("이메일 인증이 완료되지 않았습니다.");
+         }
 
         // 비밀번호 암호화 처리
         String encryptedPassword = passwordEncoder.encode(request.getPassword());
@@ -60,5 +65,14 @@ public class UserService {
                 .birthdate(savedUser.getBirthdate())
                 .phoneNumber(savedUser.getPhoneNumber())
                 .build();
+    }
+
+    public void deleteUserByEmail(String email) {
+        Optional<User> user = userRepository.findByEmail(email);
+        if (user.isPresent()) {
+            userRepository.delete(user.get());
+        } else {
+            throw new IllegalArgumentException("해당 이메일의 유저가 존재하지 않습니다.");
+        }
     }
 }
