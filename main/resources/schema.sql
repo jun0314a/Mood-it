@@ -13,6 +13,7 @@ CREATE TABLE IF NOT EXISTS Users (
     phone_number VARCHAR(15) UNIQUE,
     birthdate DATE,
     profile_image_url VARCHAR(500),
+    is_verified BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
@@ -43,6 +44,7 @@ CREATE TABLE IF NOT EXISTS Post (
     Created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     Likes INT DEFAULT 0,
     Tag VARCHAR(100),
+    Author VARCHAR(100),
     FOREIGN KEY (User_id) REFERENCES Users(User_id) ON DELETE CASCADE,
     FOREIGN KEY (Board_id) REFERENCES Board(Board_id) ON DELETE CASCADE
 );
@@ -158,9 +160,11 @@ CREATE TABLE IF NOT EXISTS Entertainment (
 CREATE TABLE IF NOT EXISTS Story (
     story_id INT PRIMARY KEY AUTO_INCREMENT,
     user_id BIGINT NOT NULL,
-    text TEXT,
+    text TEXT NOT NULL,
     picture VARCHAR(500),
     timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    like_count INT DEFAULT 0 CHECK (like_count >= 0),
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
