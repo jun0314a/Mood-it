@@ -195,3 +195,16 @@ CREATE TABLE IF NOT EXISTS GroupMember (
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE,
     UNIQUE KEY unique_group_member (group_id, user_id)
 );
+
+-- 16. emotion_group 테이블
+CREATE TABLE IF NOT EXISTS emotion_group (
+    group_id INT AUTO_INCREMENT PRIMARY KEY,
+    creator_id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    emotion VARCHAR(20),
+    tags TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES users(user_id) ON DELETE CASCADE
+);
