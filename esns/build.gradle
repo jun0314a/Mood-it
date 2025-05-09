@@ -39,6 +39,10 @@ dependencies {
     
     // Bean Validation (jakarta validation API)
     implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'com.fasterxml.jackson.core:jackson-databind'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    runtimeOnly 'com.mysql:mysql-connector-j'
     
     // MySQL 드라이버
     runtimeOnly 'mysql:mysql-connector-java:8.0.33'
@@ -60,6 +64,9 @@ dependencies {
 
     //mail
     implementation 'org.springframework.boot:spring-boot-starter-mail'
+
+    //Swaggerui
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.7.0'
 }
 
 test {
