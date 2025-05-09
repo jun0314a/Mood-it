@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 import org.springframework.security.core.AuthenticationException;
-
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.Authentication;
@@ -15,6 +15,11 @@ import com.example.auth.jwt.JwtUtil;
 import com.example.user_account.entity.User;
 import com.example.user_account.repository.UserRepository;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 
 @RestController
@@ -26,6 +31,18 @@ public class AuthController {
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
+    @Operation(summary = "로그인", description = "이메일/비밀번호로 인증 후 JWT 토큰을 발급합니다.")
+    @ApiResponses({
+      @ApiResponse(
+        responseCode="200",
+        description="로그인 성공",
+        content=@Content(
+          mediaType="application/json",
+          schema=@Schema(example="{\"token\":\"eyJ...\",\"email\":\"user@ex.com\"}")
+        )
+      ),
+      @ApiResponse(responseCode="401", description="인증 실패")
+    })
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest request) {
         try {
@@ -36,6 +53,8 @@ public class AuthController {
                             request.getPassword()
                     )
             );
+
+            SecurityContextHolder.getContext().setAuthentication(authentication);
 
             // 👤 사용자 정보 조회
             User user = userRepository.findByEmail(request.getEmail())
