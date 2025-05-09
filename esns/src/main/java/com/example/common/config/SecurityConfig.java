@@ -9,7 +9,6 @@ import org.springframework.security.config.annotation.authentication.configurati
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.*;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.userdetails.*;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.*;
@@ -21,15 +20,29 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtFilter jwtFilter;
-    private final UserDetailsService userDetailsService;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable()) // CSRF 비활성화 (API 사용 시 필요)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션X
+            
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/users/**", "/api/emotion/**", "/api/recommend/**","/posts/**","/error").permitAll() // 회원가입, 로그인, 감정분석api는 인증 필요 없음음
+            .requestMatchers(
+    "/api/auth/login",
+                "/api/users/signup",
+                "/api/users/verify-email",
+                "/api/users/send-code",
+                "/api/users/forgot-password",
+                "/api/users/reset-password",
+                "/error",
+
+                // 🔽 Swagger 관련 경로 허용
+                "/swagger-ui.html",
+                "/swagger-ui/**",
+                "/v3/api-docs/**",
+                "/api-docs/**"
+                ).permitAll() // 회원가입, 로그인, 감정분석api는 인증 필요 없음
                 .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 적용
