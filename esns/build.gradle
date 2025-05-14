@@ -1,6 +1,6 @@
 plugins {
-	id 'java'
-    id 'eclipse'
+	id 'application'
+    id 'java'
 	id 'org.springframework.boot' version '3.4.4'
 	id 'io.spring.dependency-management' version '1.1.7'
 }
@@ -10,7 +10,7 @@ version = '0.0.1-SNAPSHOT'
 
 java {
 	toolchain {
-		languageVersion = JavaLanguageVersion.of(21)
+		languageVersion = JavaLanguageVersion.of(17)
 	}
 }
 
@@ -27,6 +27,12 @@ repositories {
 dependencies {
     //IBM 감정 분석 API JAVA SDK 설치
     implementation 'com.ibm.watson:natural-language-understanding:14.0.0'
+
+    implementation 'org.springframework.boot:spring-boot-starter-websocket'
+    implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+    implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.1.0'
+
 
     // REST API와 기본적인 웹 기능
     implementation 'org.springframework.boot:spring-boot-starter-web'

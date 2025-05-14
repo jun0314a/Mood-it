@@ -29,7 +29,10 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) // CSRF 비활성화 (API 사용 시 필요)
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)) // 세션X
             .authorizeHttpRequests(auth -> auth
-                .requestMatchers("/api/auth/login", "/api/users/**", "/api/emotion/**", "/api/recommend/**","/posts/**","/error").permitAll() // 회원가입, 로그인, 감정분석api는 인증 필요 없음음
+                .requestMatchers(
+                "/chattest_dm.html","/api/auth/login", "/ws/chat/**",           // ✅ WebSocket 허용
+                "/**/*.js",
+                "/**/*.css", "/api/users/**", "/api/emotion/**", "/api/recommend/**","/posts/**","/error").permitAll() // 회원가입, 로그인, 감정분석api는 인증 필요 없음음
                 .anyRequest().authenticated() // 그 외 모든 요청은 인증 필요
             )
             .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class); // JWT 필터 적용
@@ -41,6 +44,13 @@ public class SecurityConfig {
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
         return config.getAuthenticationManager();
+    }
+
+     @Bean
+    public WebSecurityCustomizer webSecurityCustomizer() {
+        return web -> web.ignoring().requestMatchers(
+            "/ws/chat/**", "/chattest_dm.html", "/**.js", "/**.css"
+        );
     }
 
     // 🔐 비밀번호 암호화 방식 (BCrypt)

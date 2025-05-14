@@ -34,6 +34,19 @@ CREATE TABLE IF NOT EXISTS Board (
     Board_name VARCHAR(50) NOT NULL
 );
 
+
+-- 15. EmotionGroup 테이블
+CREATE TABLE IF NOT EXISTS EmotionGroup (
+    group_id INT PRIMARY KEY AUTO_INCREMENT,
+    creator_id BIGINT NOT NULL,
+    title VARCHAR(100) NOT NULL,
+    description TEXT,
+    emotion ENUM('joy', 'sadness', 'anger', 'calm', 'anxiety') NOT NULL,
+    tags TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE
+);
+
 -- 4. Post 테이블
 CREATE TABLE IF NOT EXISTS Post (
     Post_id INT PRIMARY KEY AUTO_INCREMENT,
@@ -172,17 +185,6 @@ CREATE TABLE IF NOT EXISTS Story (
     FOREIGN KEY (user_id) REFERENCES Users(user_id) ON DELETE CASCADE
 );
 
--- 15. EmotionGroup 테이블
-CREATE TABLE IF NOT EXISTS EmotionGroup (
-    group_id INT PRIMARY KEY AUTO_INCREMENT,
-    creator_id BIGINT NOT NULL,
-    title VARCHAR(100) NOT NULL,
-    description TEXT,
-    emotion ENUM('joy', 'sadness', 'anger', 'calm', 'anxiety') NOT NULL,
-    tags TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (creator_id) REFERENCES Users(user_id) ON DELETE CASCADE
-);
 
 -- 16. GroupMember 테이블
 CREATE TABLE IF NOT EXISTS GroupMember (
