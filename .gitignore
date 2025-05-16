@@ -1,0 +1,42 @@
+# ────────────────────────────────────────────────────────────────
+# 1) Gradle & 빌드 결과물
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/**/build/
+
+# 2) STS (Eclipse) 설정
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+# 컴파일 산출물 무시
+**/bin/
+!**/src/**/bin/
+
+# 3) IntelliJ IDEA 설정
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/**/out/
+
+# 4) NetBeans 설정
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# 5) VS Code 설정
+# 아래 패턴이 있으면 루트와 서브디렉터리의 .vscode 폴더를 모두 무시합니다.
+.vscode/
+
+# 6) 기타 untracked 파일들 (필요 없으면 무시)
+expo-master/
+frontend/
+openapitools.json
