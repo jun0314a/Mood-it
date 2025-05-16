@@ -1,73 +1,112 @@
 package com.example.emotion_recommend.service;
 
-import com.example.emotion_analysis.service.ChatGptClient;
+import com.example.emotion_analysis.dto.EmotionResultDto;
+import com.example.emotion_analysis.service.EmotionService;
 import com.example.emotion_recommend.client.TmdbClient;
 import com.example.emotion_recommend.dto.ContentRecommendationDto;
 import com.example.emotion_recommend.dto.RecommendationResponseDto;
-import com.example.emotion_recommend.dto.TmdbContentDetail;
+import com.example.emotion_analysis.service.ChatGptClient;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
 public class RecommendationService {
 
+    private static final Logger logger = LoggerFactory.getLogger(RecommendationService.class);
+
+    private final EmotionService emotionService;
     private final ChatGptClient chatGptClient;
     private final TmdbClient tmdbClient;
+    private final ObjectMapper objectMapper;
 
-    public RecommendationResponseDto getRecommendationsByEmotion(String emotion) {
-        String prompt = String.format(
-            "사용자의 감정은 '%s'입니다. 해당 감정에 어울리는 **영화, 노래, 책, 드라마**를 각각 하나씩 추천해주세요.\n" +
-            "- 추천은 매번 다르게 해주세요.\n" +
-            "- 제목은 **반드시 한국어**로 출력해주세요.\n" +
-            "- 형식: 영화: {제목} / 노래: {제목} / 책: {제목} / 드라마: {제목}",
-            emotion);
+    /**
+     * 1) text로 감정 분석 → DB 저장
+     * 2) 분석된 대표 감정으로 콘텐츠 추천 → 최종 DTO 반환
+     */
+    public RecommendationResponseDto getRecommendationsByText(String text, Long userId) {
+        // 1) 감정 분석 및 DB 저장
+        EmotionResultDto er = emotionService.analyzeAndSave(text, userId);
+        String emotion = er.getTopEmotion().name().toLowerCase();
+        logger.debug("Detected and saved emotion: {}", emotion);
 
-        String gptResponse = chatGptClient.getEmotionFromText(prompt);
-        String[] recommendations = gptResponse.split("/");
+        // 2) 추천 제목용 JSON 스키마 프롬프트
+        String recPrompt = String.format(
+            "사용자 감정: \"%s\"\n" +
+            "아래 JSON 스키마에 맞춰, 추천할 **한글 제목**만 채워서 반환하세요. 추가 텍스트 금지.\n" +
+            "{\n" +
+            "  \"movie\": \"영화제목\",\n" +
+            "  \"drama\": \"드라마제목\",\n" +
+            "  \"book\": \"책제목\",\n" +
+            "  \"music\": \"음악제목\"\n" +
+            "}", emotion
+        );
+        List<Map<String,String>> recMsgs = List.of(
+            Map.of(
+                "role","system",
+                "content","당신은 감정 기반 콘텐츠 추천 전문가입니다. 반드시 한글로만 제목을 추천하고, valid JSON 객체만 반환하세요."
+            ),
+            Map.of("role","user","content",recPrompt)
+        );
 
-        List<ContentRecommendationDto> contentList = new ArrayList<>();
+        // 3) GPT 호출 → 순수 JSON 문자열 추출
+        String rawJson = chatGptClient.chatCompletion(recMsgs, 0.0);
+        logger.debug("Raw recommendation JSON: {}", rawJson);
+        String json = extractJson(rawJson);
 
-        for (String recommendation : recommendations) {
-            String[] parts = recommendation.split(":");
-            if (parts.length < 2) continue;
+        // 4) JSON → Map<type, title>
+        Map<String,String> titles;
+        try {
+            titles = objectMapper.readValue(json, new TypeReference<>() {});
+        } catch (Exception ex) {
+            logger.error("추천 JSON 파싱 실패. rawJson={}", rawJson, ex);
+            throw new RuntimeException("추천 JSON 파싱 실패: " + rawJson, ex);
+        }
 
-            String type = parts[0].trim();
-            String title = parts[1].trim();
+        // 5) TMDB/GPT 로직으로 ContentRecommendationDto 리스트 생성
+        List<ContentRecommendationDto> list = new ArrayList<>();
+        for (var e : titles.entrySet()) {
+            String type = e.getKey();
+            String title = e.getValue();
 
-            // 영화나 드라마는 TMDB 사용
-            if (type.equalsIgnoreCase("영화") || type.equalsIgnoreCase("드라마")) {
-                TmdbContentDetail detail = tmdbClient.searchContentByTitle(title);
-
-                // 설명/이미지 누락 시 재검사 1번
-                if (detail.getDescription() == null || detail.getImageUrl() == null) {
-                    detail = tmdbClient.searchContentByTitle(title); // 한 번만 재시도
-                }
-
-                contentList.add(new ContentRecommendationDto(
-                        type,
-                        title,
-                        detail.getDescription() != null ? detail.getDescription() : "설명 없음",
-                        detail.getImageUrl()
+            if ("movie".equalsIgnoreCase(type) || "drama".equalsIgnoreCase(type)) {
+                var detail = tmdbClient.searchContentByTitle(title);
+                list.add(new ContentRecommendationDto(
+                    type,
+                    title,
+                    detail.getDescription() != null ? detail.getDescription() : "설명 없음",
+                    detail.getImageUrl()
                 ));
-            }
-            // 노래와 책은 ChatGPT로 설명 생성, 이미지 없음
-            else {
-                String subPrompt = String.format("‘%s’라는 %s에 대한 간단한 설명을 1문장으로 해주세요. (최대 30자)", title, type);
-                String description = chatGptClient.getEmotionFromText(subPrompt);
-
-                contentList.add(new ContentRecommendationDto(
-                        type,
-                        title,
-                        description,
-                        null // 이미지 없음
-                ));
+            } else {
+                String descPrompt = String.format("‘%s’라는 %s에 대한 한 문장 설명(최대 30자)만 한글로 해주세요.", title, type);
+                List<Map<String,String>> descMsgs = List.of(
+                    Map.of("role","system","content","간결한 한 문장 설명만 반환하세요. 추가 텍스트 금지."),
+                    Map.of("role","user","content",descPrompt)
+                );
+                String description = chatGptClient.chatCompletion(descMsgs, 0.0);
+                list.add(new ContentRecommendationDto(type, title, description, null));
             }
         }
 
-        return new RecommendationResponseDto(emotion, contentList);
+        return new RecommendationResponseDto(emotion, list);
+    }
+
+    /** rawText에서 처음 '{'부터 마지막 '}' 사이만 잘라내 반환 */
+    private String extractJson(String rawText) {
+        int start = rawText.indexOf('{');
+        int end = rawText.lastIndexOf('}');
+        if (start != -1 && end > start) {
+            return rawText.substring(start, end + 1);
+        }
+        return rawText;
     }
 }
