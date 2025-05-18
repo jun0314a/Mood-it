@@ -3,6 +3,10 @@ package com.example.user_account.controller;
 import com.example.user_account.entity.User;
 import com.example.user_account.repository.UserRepository;
 import com.example.user_account.service.EmailService;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,6 +24,11 @@ public class PasswordResetController {
     private final EmailService emailService;
     private final PasswordEncoder passwordEncoder;
 
+    @Operation(summary = "비밀번호 찾기", description = "이메일로 임시 비밀번호를 발송합니다.")
+    @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "임시 비밀번호 발송"),
+      @ApiResponse(responseCode = "400", description = "등록된 사용자가 없음")
+    })
     @PostMapping("/forgot-password")
     public ResponseEntity<String> forgotPassword(@RequestParam String email) {
         Optional<User> optionalUser = userRepository.findByEmail(email);
@@ -38,6 +47,11 @@ public class PasswordResetController {
         return ResponseEntity.ok("임시 비밀번호가 이메일로 전송되었습니다.");
     }
 
+    @Operation(summary = "비밀번호 재설정", description = "이메일과 새 비밀번호로 등록된 회원의 비밀번호를 변경합니다.")
+    @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "비밀번호 변경 성공"),
+      @ApiResponse(responseCode = "400", description = "존재하지 않는 이메일")
+    })
     @PostMapping("/reset-password")
     public ResponseEntity<String> resetPassword(@RequestParam String email, @RequestParam String newPassword) {
         Optional<User> userOpt = userRepository.findByEmail(email);
