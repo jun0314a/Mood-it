@@ -20,6 +20,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -164,5 +165,17 @@ public class GroupServiceImpl implements GroupService {
                 .emotion(group.getEmotion().name())
                 .createdAt(group.getCreatedAt())
                 .build();
+    }
+
+    @Override
+    public List<GroupDto> getGroupsByUser(Long userId) {
+        // 1) userId 로 가입된 GroupMember 목록 조회
+        List<GroupMember> memberships = memberRepo.findByUserId(userId);
+
+        // 2) 각 GroupMember 에서 Group 꺼내 DTO 로 변환
+        return memberships.stream()
+            .map(GroupMember::getGroup)       // GroupMember → Group
+            .map(this::toDto)                // Group → GroupDto
+            .collect(Collectors.toList());
     }
 }

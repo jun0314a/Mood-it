@@ -2,14 +2,16 @@ package com.example.user_account.service;
 
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import org.springframework.security.crypto.password.PasswordEncoder;
 import com.example.user_account.dto.UserResponseDto;
 import com.example.user_account.dto.UserSignupRequest;
 import com.example.user_account.entity.User;
 import com.example.user_account.repository.UserRepository;
+import com.example.user_account.dto.UserUpdateRequest;
+import org.springframework.security.access.AccessDeniedException;
 
 @Service
 @RequiredArgsConstructor
@@ -75,4 +77,57 @@ public class UserService {
             throw new IllegalArgumentException("해당 이메일의 유저가 존재하지 않습니다.");
         }
     }
+
+        /**
+     * ① 프로필 조회
+     */
+    @Transactional(readOnly = true)
+    public UserResponseDto getUserProfile(Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
+        return UserResponseDto.builder()
+                .id(user.getId())
+                .email(user.getEmail())
+                .username(user.getUsername())
+                .birthdate(user.getBirthdate())
+                .phoneNumber(user.getPhoneNumber())
+                .profileImageUrl(user.getProfileImageUrl())
+                .build();
+    }
+
+        /**
+     * ② 토큰에서 추출한 이메일과 경로변수 ID의 회원이 동일한지 검증
+     */
+    public void verifyEmailMatchesId(String email, Long id) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
+        if (!user.getEmail().equals(email)) {
+            throw new AccessDeniedException("권한이 없습니다.");
+        }
+    }
+
+        /**
+     * ③ 프로필(이름·이미지 URL) 수정
+     */
+    public UserResponseDto updateUser(Long id, UserUpdateRequest request) {
+        User user = userRepository.findById(id)
+            .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
+        user.setUsername(request.getUsername());
+        user.setProfileImageUrl(request.getProfileImageUrl());
+        // 필요시 다른 필드도 업데이트
+        User updated = userRepository.save(user);
+
+        return UserResponseDto.builder()
+                .id(updated.getId())
+                .email(updated.getEmail())
+                .username(updated.getUsername())
+                .birthdate(updated.getBirthdate())
+                .phoneNumber(updated.getPhoneNumber())
+                .profileImageUrl(updated.getProfileImageUrl())
+                .build();
+    }
 }
+
+
+
+

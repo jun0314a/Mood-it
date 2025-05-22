@@ -2,7 +2,7 @@ package com.example.admin.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Comment")
@@ -33,7 +33,7 @@ public class AdminComment {
     private String content;
 
     @Column(name = "Created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     @Column(name = "Likes", nullable = false)
     private int likes;

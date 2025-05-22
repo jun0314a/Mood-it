@@ -3,7 +3,7 @@ package com.example.admin.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import java.sql.Date;
-import java.sql.Timestamp;
+import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "Users")
@@ -44,7 +44,7 @@ public class AdminUserEntity {
     private Date birthdate;
 
     @Column(name = "Created_at", columnDefinition = "TIMESTAMP DEFAULT CURRENT_TIMESTAMP")
-    private Timestamp createdAt;
+    private LocalDateTime createdAt;
 
     public enum MembershipLevel {
         basic, premium

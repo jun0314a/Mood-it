@@ -30,4 +30,10 @@ public class UserResponseDto {
 
     @Schema(description = "전화번호", example = "01012345678")
     private String phoneNumber;
+
+    @Schema(
+    description = "프로필 이미지 URL",
+    example = "http://example.com/images/profile.png",
+    format = "uri")
+    private String profileImageUrl;
 }

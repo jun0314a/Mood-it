@@ -15,4 +15,7 @@ public interface GroupMemberRepository extends JpaRepository<GroupMember, Intege
     void deleteByGroupGroupIdAndUserId(Integer groupId, Long userId);
 
     void deleteByGroupGroupId(Integer groupId);
+
+    // 가입 정보 조회용 메서드 추가
+    List<GroupMember> findByUserId(Long userId);
 }
