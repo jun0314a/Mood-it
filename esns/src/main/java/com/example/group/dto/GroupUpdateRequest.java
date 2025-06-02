@@ -10,4 +10,5 @@ public class GroupUpdateRequest {
     private String description;
     private String tags;
     private String emotion;
+    private String profileImageUrl;
 }

@@ -19,7 +19,16 @@ public interface GroupService {
     List<GroupDto> searchGroups(String title, String tag, String emotion);
     GroupDto getGroup(Integer groupId);
 
-    // 🔽 새로 추가
+    /** 그룹 프로필만 삭제하는 메서드 */
+    void deleteGroupProfile(Integer groupId);
+
+
+    /**
+     * 전체 그룹 목록 조회
+     * @return 모든 그룹의 DTO 리스트
+     */
+    List<GroupDto> getAllGroups();
+
     /**
      * 사용자가 가입한 그룹 리스트 조회
      * @param userId 조회할 사용자 ID

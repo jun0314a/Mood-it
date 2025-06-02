@@ -17,7 +17,14 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.beans.factory.annotation.Value;
 
+import java.util.UUID;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,38 +37,66 @@ public class GroupServiceImpl implements GroupService {
     private final PostRepository postRepo;
     private final UserRepository userRepo;
 
+    @Value("${file.upload-dir.group}")
+    private String groupImageUploadPath;
+
     @Override
     @Transactional
     public GroupDto createGroup(GroupCreateRequest req) {
         User creator = userRepo.findById(req.getCreatorId())
-                .orElseThrow(() -> new EntityNotFoundException(
-                        "Invalid creator ID: " + req.getCreatorId()
-                ));
-        Emotion emotionEnum;
-        try {
-            emotionEnum = Emotion.valueOf(req.getEmotion().toLowerCase());
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException(
-                    "Invalid emotion value: " + req.getEmotion()
-            );
-        }
-        Group group = Group.builder()
-                .creator(creator)
-                .title(req.getTitle())
-                .description(req.getDescription())
-                .tags(req.getTags())
-                .emotion(emotionEnum)
-                .build();
-        groupRepo.saveAndFlush(group);
-        GroupMember owner = GroupMember.builder()
-                .group(group)
-                .user(creator)
-                .role(Role.owner)
-                .joinedAt(LocalDateTime.now())
-                .build();
-        memberRepo.save(owner);
-        return toDto(group);
+            .orElseThrow(() -> new EntityNotFoundException(
+                    "Invalid creator ID: " + req.getCreatorId()
+            ));
+
+    Emotion emotionEnum;
+    try {
+        emotionEnum = Emotion.valueOf(req.getEmotion().toLowerCase());
+    } catch (IllegalArgumentException e) {
+        throw new IllegalArgumentException("Invalid emotion value: " + req.getEmotion());
     }
+
+    String imageUrl = null;
+    MultipartFile image = req.getImage();
+    if (image != null && !image.isEmpty()) {
+        try {
+            // 고유한 파일명 생성
+            String filename = UUID.randomUUID() + "_" + image.getOriginalFilename();
+
+            // 실제 저장 경로
+            Path uploadPath = Paths.get(groupImageUploadPath).toAbsolutePath().normalize();
+            Files.createDirectories(uploadPath); // 디렉토리 없으면 생성
+
+            Path filePath = uploadPath.resolve(filename);
+            image.transferTo(filePath.toFile());
+
+            // 프론트에서 접근 가능한 경로 (static 경로 기반)
+            imageUrl = "/uploads/group/" + filename;
+        } catch (IOException e) {
+            throw new RuntimeException("이미지 업로드 실패", e);
+        }
+    }
+
+    Group group = Group.builder()
+            .creator(creator)
+            .title(req.getTitle())
+            .description(req.getDescription())
+            .tags(req.getTags())
+            .emotion(emotionEnum)
+            .profileImageUrl(imageUrl) // ⬅️ 저장된 이미지 경로 설정
+            .build();
+
+    groupRepo.saveAndFlush(group);
+
+    GroupMember owner = GroupMember.builder()
+            .group(group)
+            .user(creator)
+            .role(Role.owner)
+            .joinedAt(LocalDateTime.now())
+            .build();
+    memberRepo.save(owner);
+
+    return toDto(group);
+}
 
     @Override
     @Transactional
@@ -177,5 +212,23 @@ public class GroupServiceImpl implements GroupService {
             .map(GroupMember::getGroup)       // GroupMember → Group
             .map(this::toDto)                // Group → GroupDto
             .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<GroupDto> getAllGroups() {
+        List<Group> entities = groupRepo.findAll();
+        return entities.stream()
+                .map(this::toDto)
+                .collect(Collectors.toList());
+    }
+
+    // ← 새로 추가: 그룹 프로필 삭제
+    @Override
+    @Transactional
+    public void deleteGroupProfile(Integer groupId) {
+        Group group = groupRepo.findById(groupId)
+                .orElseThrow(() -> new EntityNotFoundException("Group not found"));
+        group.setProfileImageUrl(null);
+        groupRepo.save(group);
     }
 }

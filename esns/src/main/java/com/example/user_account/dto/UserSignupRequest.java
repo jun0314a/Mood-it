@@ -8,6 +8,8 @@ import lombok.*;
 
 import java.time.LocalDate;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Data
@@ -63,4 +65,12 @@ public class UserSignupRequest {
     )
     @NotBlank(message = "전화번호는 필수 입력 항목입니다.")
     private String phoneNumber;
+
+    @Schema(
+        description = "프로필 이미지 파일",
+        type = "string",
+        format = "binary",
+        required = false
+    )
+    private MultipartFile profileImage;
 }

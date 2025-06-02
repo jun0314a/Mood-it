@@ -131,11 +131,11 @@ CREATE TABLE IF NOT EXISTS EmotionLog (
 
 -- 11. EmotionCalendar 테이블
 CREATE TABLE IF NOT EXISTS EmotionCalendar (
-    Calendar_id INT PRIMARY KEY AUTO_INCREMENT,
+    id INT AUTO_INCREMENT PRIMARY KEY,
     User_id BIGINT NOT NULL,
-    Date DATE NOT NULL,
-    Emotion ENUM('joy', 'sadness', 'anger', 'calm', 'anxiety'),
-    Note TEXT,
+    Date VARCHAR(10) NOT NULL,
+    emoji ENUM('joy', 'sadness', 'anger', 'calm', 'anxiety') NULL,
+    comment VARCHAR(255) NULL,
     FOREIGN KEY (User_id) REFERENCES Users(User_id) ON DELETE CASCADE
 );
 
@@ -219,4 +219,13 @@ CREATE TABLE IF NOT EXISTS Challenges (
     end_at DATETIME,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
     updated_at DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 18. User_calendar 테이블
+CREATE TABLE IF NOT EXISTS user_calendar (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    user_id BIGINT NOT NULL,
+    date VARCHAR(10) NOT NULL,
+    comment TEXT,
+    emoji VARCHAR(10)
 );

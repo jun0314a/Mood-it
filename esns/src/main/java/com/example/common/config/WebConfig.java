@@ -11,6 +11,14 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${frontend.origin:http://localhost:19006}")
     private String frontendOrigin;
 
+    // application.properties에 정의한 프로필 이미지 저장 경로
+    @Value("${file.upload-dir.profile}")
+    private String profileUploadDir;
+
+    // application.properties에 정의한 스토리 이미지 저장 경로
+    @Value("${file.upload-dir.story}")
+    private String storyUploadDir;
+
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
@@ -22,8 +30,12 @@ public class WebConfig implements WebMvcConfigurer {
 
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
-        // 스토리 이미지 업로드 파일 접근 허용
-        registry.addResourceHandler("/uploads/**")
-                .addResourceLocations("file:uploads/");
+        // 1) 프로필 이미지 (/profile-images/**) 요청을 profileUploadDir로 매핑
+        registry.addResourceHandler("/profile-images/**")
+                .addResourceLocations("file:" + profileUploadDir);
+
+        // 2) 스토리 이미지 (/story-images/**) 요청을 storyUploadDir로 매핑
+        registry.addResourceHandler("/story-images/**")
+                .addResourceLocations("file:" + storyUploadDir);
     }
 }

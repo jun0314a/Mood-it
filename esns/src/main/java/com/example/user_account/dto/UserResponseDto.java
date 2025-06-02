@@ -5,6 +5,8 @@ import lombok.Getter;
 
 import java.time.LocalDate;
 
+import org.springframework.web.multipart.MultipartFile;
+
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Getter
@@ -31,9 +33,6 @@ public class UserResponseDto {
     @Schema(description = "전화번호", example = "01012345678")
     private String phoneNumber;
 
-    @Schema(
-    description = "프로필 이미지 URL",
-    example = "http://example.com/images/profile.png",
-    format = "uri")
+    @Schema(description = "프로필 이미지 URL", example = "/profile-images/uuid.png")
     private String profileImageUrl;
 }

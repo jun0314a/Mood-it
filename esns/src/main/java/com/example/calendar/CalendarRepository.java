@@ -1,6 +1,5 @@
 package com.example.calendar;
 
-import com.example.calendar.CalendarEntry;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
-@RequestMapping("/calendar")
+@RequestMapping("/api/calendar")
 @RequiredArgsConstructor
 @Tag(name = "캘린더 API", description = "사용자별 감정 캘린더를 조회, 추가, 삭제하는 API")
 public class CalendarController {
@@ -47,5 +47,19 @@ public class CalendarController {
         Optional<CalendarEntry> entry = calendarRepository.findByUserIdAndDate(userId, date);
         entry.ifPresent(calendarRepository::delete);
         return ResponseEntity.noContent().build();
+    }
+
+    @PatchMapping("/{userId}/{date}/comment")
+    public ResponseEntity<CalendarEntry> updateComment(
+        @PathVariable Long userId,
+        @PathVariable String date,
+        @RequestBody String comment) {
+
+        Optional<CalendarEntry> entryOpt = calendarRepository.findByUserIdAndDate(userId, date);
+        if (entryOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        CalendarEntry entry = entryOpt.get();
+        entry.setComment(comment);
+        return ResponseEntity.ok(calendarRepository.save(entry));
     }
 }

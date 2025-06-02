@@ -45,4 +45,8 @@ public class Group {
     @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+     // 새로 추가된 그룹 프로필 이미지 URL
+    @Column(name = "profile_image_url", length = 500)
+    private String profileImageUrl;
 }

@@ -38,7 +38,7 @@ public class AuthController {
         description="로그인 성공",
         content=@Content(
           mediaType="application/json",
-          schema=@Schema(example="{\"token\":\"eyJ...\",\"email\":\"user@ex.com\"}")
+          schema=@Schema(example="{\"token\":\"eyJ...\",\"id\":123,\"email\":\"user@ex.com\"}")
         )
       ),
       @ApiResponse(responseCode="401", description="인증 실패")
@@ -72,6 +72,7 @@ public class AuthController {
             // ✅ 응답 형태 구성 (token + username 등)
             Map<String, Object> response = new HashMap<>();
             response.put("token", token);
+            response.put("id", user.getId()); 
             response.put("email", user.getEmail());
             response.put("username", user.getUsername());
 

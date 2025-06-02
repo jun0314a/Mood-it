@@ -1,15 +1,10 @@
 package com.example.user_account.controller;
 
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import com.example.auth.jwt.JwtUtil;
 import com.example.user_account.dto.UserResponseDto;
@@ -18,15 +13,12 @@ import com.example.user_account.service.UserService;
 import com.example.user_account.dto.UserUpdateRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
-import io.swagger.v3.oas.annotations.media.Content;
-import io.swagger.v3.oas.annotations.media.ExampleObject;
-import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.media.*;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-
 
 @RestController
 @RequestMapping("/api/users")
@@ -36,9 +28,17 @@ public class UserAccountController {
     private final UserService userService;
     private final JwtUtil jwtUtil;
 
+    private String extractTokenFromHeader(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
+            return bearerToken.substring(7);
+        }
+        throw new IllegalArgumentException("Authorization 헤더가 유효하지 않습니다.");
+    }
+
     @Operation(
       summary = "회원 가입",
-      description = "이메일/비밀번호/이름/생년월일/전화번호를 받아 신규 회원을 생성합니다."
+      description = "이메일/비밀번호/이름/생년월일/전화번호와 프로필 이미지를 받아 신규 회원을 생성합니다."
     )
     @ApiResponses({
       @ApiResponse(
@@ -47,23 +47,22 @@ public class UserAccountController {
         content = @Content(
           mediaType = "application/json",
           schema = @Schema(implementation = UserResponseDto.class),
-          examples = @ExampleObject(value = "{\"id\":1,\"email\":\"user@ex.com\",\"username\":\"홍길동\",\"birthdate\":\"1990-01-01\",\"phoneNumber\":\"010-1234-5678\"}")
+          examples = @ExampleObject(value = "{\"id\":1,\"email\":\"user@ex.com\",\"username\":\"홍길동\",\"birthdate\":\"1990-01-01\",\"phoneNumber\":\"010-1234-5678\",\"profileImageUrl\":\"/profile-images/uuid.png\"}")
         )
       ),
       @ApiResponse(responseCode = "400", description = "입력 검증 오류")
     })
-    @PostMapping("/signup")
-    public ResponseEntity<UserResponseDto> signup(@Valid @RequestBody UserSignupRequest request) {
+    @PostMapping(
+      value = "/signup",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
+    public ResponseEntity<UserResponseDto> signup(
+            @RequestPart("data") @Valid UserSignupRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage
+    ) {
+        request.setProfileImage(profileImage);
         UserResponseDto userResponse = userService.signup(request);
         return new ResponseEntity<>(userResponse, HttpStatus.CREATED);
-    }
-
-    private String extractTokenFromHeader(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (bearerToken != null && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7); // "Bearer " 이후 토큰 부분 추출
-        }
-        throw new IllegalArgumentException("Authorization 헤더가 유효하지 않습니다.");
     }
 
     @Operation(
@@ -116,18 +115,23 @@ public class UserAccountController {
       @ApiResponse(responseCode = "401", description = "권한 없음"),
       @ApiResponse(responseCode = "404", description = "회원이 존재하지 않음")
     })
-    @PutMapping("/{id}")
+    @PutMapping(
+      value = "/{id}",
+      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
+    )
     public ResponseEntity<UserResponseDto> updateProfile(
             @PathVariable Long id,
-            @Valid @RequestBody UserUpdateRequest request,
+            @RequestPart("data") @Valid UserUpdateRequest request,
+            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
             HttpServletRequest httpRequest
     ) {
-        // (선택) JWT 검증 → 토큰에서 얻은 사용자 이메일/ID와 경로 변수 ID 비교 로직
+        // JWT 검증 → 토큰에서 얻은 사용자 이메일과 경로변수 ID의 사용자 이메일 비교
         String token = extractTokenFromHeader(httpRequest);
         String email = jwtUtil.extractEmail(token);
         userService.verifyEmailMatchesId(email, id);
 
+        request.setProfileImage(profileImage);
         UserResponseDto updated = userService.updateUser(id, request);
         return ResponseEntity.ok(updated);
-    }    
+    }
 }

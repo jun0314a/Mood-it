@@ -7,13 +7,19 @@ import com.example.group.service.GroupService;
 import com.example.group.dto.PostCreateRequest;
 import com.example.group.dto.PostDto;
 import com.example.group.service.PostService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import org.springframework.http.MediaType;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.List;
 
@@ -22,22 +28,32 @@ import java.util.List;
 @RequestMapping("/api/groups")
 @RequiredArgsConstructor
 public class GroupController {
+
     private final GroupService groupService;
     private final PostService postService;
+    private final ObjectMapper objectMapper;
 
     @Operation(summary = "그룹 생성", description = "새 그룹을 생성합니다. creatorId 파라미터와 함께 요청합니다.")
-    @PostMapping
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<GroupDto> createGroup(
             @RequestParam("creatorId") Long creatorId,
-            @RequestBody GroupCreateRequest request) {
+            @RequestPart("group") String groupJson,
+            @RequestPart(value = "image", required = false) MultipartFile image
+    ) throws JsonProcessingException {
+
+        // JSON 문자열을 DTO로 변환
+        GroupCreateRequest request = objectMapper.readValue(groupJson, GroupCreateRequest.class);
         request.setCreatorId(creatorId);
+        request.setImage(image); // 이미지 DTO에 주입
+
         return ResponseEntity.ok(groupService.createGroup(request));
     }
 
     @Operation(summary = "그룹 수정", description = "기존 그룹의 이름 및 설명을 변경합니다.")
     @PutMapping("/{groupId}")
-    public ResponseEntity<GroupDto> updateGroup(@PathVariable Integer groupId,
-                                                @RequestBody GroupUpdateRequest request) {
+    public ResponseEntity<GroupDto> updateGroup(
+            @PathVariable Integer groupId,
+            @RequestBody GroupUpdateRequest request) {
         return ResponseEntity.ok(groupService.updateGroup(groupId, request));
     }
 
@@ -48,18 +64,29 @@ public class GroupController {
         return ResponseEntity.noContent().build();
     }
 
+    
+    @Operation(summary = "그룹 프로필 삭제", description = "그룹 프로필을 삭제합니다.")
+    @DeleteMapping("/{groupId}/profile")
+    public ResponseEntity<Void> deleteGroupProfile(@PathVariable Integer groupId) {
+        groupService.deleteGroupProfile(groupId);
+        return ResponseEntity.noContent().build();
+    }
+
+
     @Operation(summary = "그룹 가입", description = "사용자를 그룹에 가입시킵니다.")
     @PostMapping("/{groupId}/join")
-    public ResponseEntity<Void> joinGroup(@PathVariable Integer groupId,
-                                          @RequestParam Long userId) {
+    public ResponseEntity<Void> joinGroup(
+            @PathVariable Integer groupId,
+            @RequestParam Long userId) {
         groupService.joinGroup(groupId, userId);
         return ResponseEntity.ok().build();
     }
 
     @Operation(summary = "그룹 탈퇴", description = "사용자를 그룹에서 탈퇴시킵니다.")
     @PostMapping("/{groupId}/leave")
-    public ResponseEntity<Void> leaveGroup(@PathVariable Integer groupId,
-                                           @RequestParam Long userId) {
+    public ResponseEntity<Void> leaveGroup(
+            @PathVariable Integer groupId,
+            @RequestParam Long userId) {
         groupService.leaveGroup(groupId, userId);
         return ResponseEntity.ok().build();
     }
@@ -89,8 +116,8 @@ public class GroupController {
     @Operation(summary = "그룹 내 게시글 작성", description = "지정된 그룹에 새 게시글을 작성합니다.")
     @PostMapping("/{groupId}/posts")
     public ResponseEntity<PostDto> createGroupPost(
-        @PathVariable Integer groupId,
-        @RequestBody PostCreateRequest req) {
+            @PathVariable Integer groupId,
+            @RequestBody PostCreateRequest req) {
         return ResponseEntity.ok(postService.createGroupPost(groupId, req));
     }
 
@@ -100,7 +127,23 @@ public class GroupController {
         return ResponseEntity.ok(postService.getPostsByGroup(groupId));
     }
 
-        @Operation(
+    // ================================
+    // 전체 그룹 목록 조회
+    // ================================
+    @Operation(summary = "전체 그룹 목록 조회", description = "모든 그룹을 조회합니다.")
+    @ApiResponses({
+      @ApiResponse(responseCode = "200", description = "조회 성공")
+    })
+    @GetMapping("/all")
+    public ResponseEntity<List<GroupDto>> getAllGroups() {
+        List<GroupDto> groups = groupService.getAllGroups();
+        return ResponseEntity.ok(groups);
+    }
+
+    // ================================
+    // 내 그룹 목록 조회 (경로변수 userId 사용)
+    // ================================
+    @Operation(
       summary = "내 그룹 목록 조회",
       description = "PathVariable로 받은 userId가 가입한 그룹 리스트를 반환합니다."
     )
@@ -108,7 +151,7 @@ public class GroupController {
       @ApiResponse(responseCode = "200", description = "조회 성공"),
       @ApiResponse(responseCode = "404", description = "해당 사용자가 없습니다.")
     })
-    @GetMapping
+    @GetMapping("/user/{userId}")
     public ResponseEntity<List<GroupDto>> getMyGroups(@PathVariable Long userId) {
         List<GroupDto> groups = groupService.getGroupsByUser(userId);
         return ResponseEntity.ok(groups);
