@@ -48,4 +48,18 @@ public class CalendarController {
         entry.ifPresent(calendarRepository::delete);
         return ResponseEntity.noContent().build();
     }
+    
+    @PatchMapping("/{userId}/{date}/comment")
+    public ResponseEntity<CalendarEntry> updateComment(
+        @PathVariable Long userId,
+        @PathVariable String date,
+        @RequestBody String comment) {
+
+        Optional<CalendarEntry> entryOpt = calendarRepository.findByUserIdAndDate(userId, date);
+        if (entryOpt.isEmpty()) return ResponseEntity.notFound().build();
+
+        CalendarEntry entry = entryOpt.get();
+        entry.setComment(comment);
+        return ResponseEntity.ok(calendarRepository.save(entry));
+    }
 }
