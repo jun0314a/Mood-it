@@ -43,7 +43,7 @@ public class WebConfig implements WebMvcConfigurer {
                 .addResourceLocations("file:" + storyUploadDir);
 
                 // 3) 그룹 이미지
-        registry.addResourceHandler("/uploads/group/**")
+        registry.addResourceHandler("/group/**")
                 .addResourceLocations("file:" + groupUploadDir); // 이 변수 따로 있으면 사용
 
         registry.addResourceHandler("/uploads/**")
