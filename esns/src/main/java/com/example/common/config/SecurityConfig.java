@@ -50,6 +50,12 @@ public class SecurityConfig {
                 ).permitAll()
                  // 업로드 파일은 인증 없이 허용
                 .requestMatchers("/uploads/**").permitAll()
+                // 스토리 이미지 URL 허용용
+                .requestMatchers("/story/**").permitAll()
+                // 프로필 이미지 URL 허용
+                .requestMatchers("/profile/**").permitAll()
+                // 그룹룹 이미지 URL 허용
+                .requestMatchers("/group/**").permitAll()
                 // 프로필 조회는 퍼블릭으로 허용
                 .requestMatchers(HttpMethod.GET, "/api/users/*").permitAll()
                 // 그 외 요청은 인증 필요

@@ -19,6 +19,10 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${file.upload-dir.story}")
     private String storyUploadDir;
 
+    // application.properties에 정의한 스토리 이미지 저장 경로
+    @Value("${file.upload-dir.group}")
+    private String groupUploadDir;
+
     @Override
     public void addCorsMappings(@NonNull CorsRegistry registry) {
         registry.addMapping("/**")
@@ -31,12 +35,16 @@ public class WebConfig implements WebMvcConfigurer {
     @Override
     public void addResourceHandlers(@NonNull ResourceHandlerRegistry registry) {
         // 1) 프로필 이미지 (/profile-images/**) 요청을 profileUploadDir로 매핑
-        registry.addResourceHandler("/profile-images/**")
+        registry.addResourceHandler("/profile/**")
                 .addResourceLocations("file:" + profileUploadDir);
 
         // 2) 스토리 이미지 (/story-images/**) 요청을 storyUploadDir로 매핑
-        registry.addResourceHandler("/story-images/**")
+        registry.addResourceHandler("/story/**")
                 .addResourceLocations("file:" + storyUploadDir);
+
+                // 3) 그룹 이미지
+        registry.addResourceHandler("/uploads/group/**")
+                .addResourceLocations("file:" + groupUploadDir); // 이 변수 따로 있으면 사용
 
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:///C:/Users/bm161/Mood-it/esns/uploads/");

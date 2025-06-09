@@ -158,55 +158,67 @@ public class UserService {
     /**
      * ③ 프로필(이름·이미지) 수정
      */
-    public UserResponseDto updateUser(Long id, UserUpdateRequest request, MultipartFile profileImage) {
-        User user = userRepository.findById(id)
-            .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
+public UserResponseDto updateUser(Long id, UserUpdateRequest request, MultipartFile profileImage) {
+    User user = userRepository.findById(id)
+        .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
 
-        // 1) 이름 변경
-        user.setUsername(request.getUsername());
+    System.out.println("✅ 사용자 조회 완료: " + user.getEmail());
 
-        // 2) 프로필 이미지 변경 로직 추가
-        if (profileImage != null && !profileImage.isEmpty()) {
-            try {
-                // (a) 원본 파일명에서 확장자 추출
-                String originalFilename = profileImage.getOriginalFilename();
-                String ext = "";
-                if (originalFilename != null && originalFilename.contains(".")) {
-                    ext = originalFilename.substring(originalFilename.lastIndexOf("."));
-                }
-                // (b) UUID + 확장자로 새로운 파일명 생성
-                String uuid = java.util.UUID.randomUUID().toString();
-                String newFilename = uuid + ext;
+    // 1) 이름 변경
+    user.setUsername(request.getUsername());
+    System.out.println("✅ 이름 변경: " + request.getUsername());
 
-                // (c) 저장 디렉터리 유무 확인 후 생성
-                File dir = new File(profileUploadDir);
-                if (!dir.exists()) {
-                    dir.mkdirs();
-                }
+    // 2) 프로필 이미지 변경 로직 추가
+    if (profileImage != null && !profileImage.isEmpty()) {
+        try {
+            String originalFilename = profileImage.getOriginalFilename();
+            System.out.println("🖼 원본 파일명: " + originalFilename);
 
-                // (d) 실제 파일 쓰기
-                File dest = new File(dir, newFilename);
-                profileImage.transferTo(dest);
-
-                // (e) URL 업데이트
-                user.setProfileImageUrl("/profile-images/" + newFilename);
-
-            } catch (Exception e) {
-                throw new RuntimeException("프로필 이미지 저장 중 오류가 발생했습니다.", e);
+            String ext = "";
+            if (originalFilename != null && originalFilename.contains(".")) {
+                ext = originalFilename.substring(originalFilename.lastIndexOf("."));
             }
+
+            String uuid = java.util.UUID.randomUUID().toString();
+            String newFilename = uuid + ext;
+            System.out.println("🆕 새 파일명: " + newFilename);
+
+            File dir = new File(profileUploadDir);
+            if (!dir.exists()) {
+                boolean created = dir.mkdirs();
+                System.out.println("📁 저장 폴더 생성됨? " + created + " 경로: " + dir.getAbsolutePath());
+            } else {
+                System.out.println("📁 저장 폴더 경로 존재: " + dir.getAbsolutePath());
+            }
+
+            File dest = new File(dir, newFilename);
+            System.out.println("📄 저장할 전체 경로: " + dest.getAbsolutePath());
+
+            profileImage.transferTo(dest);
+
+            user.setProfileImageUrl("/profile/" + newFilename);
+            System.out.println("✅ 프로필 이미지 저장 완료: " + user.getProfileImageUrl());
+
+        } catch (Exception e) {
+            System.out.println("❌ 이미지 저장 중 예외 발생: " + e.getMessage());
+            e.printStackTrace(); // 에러 위치까지 상세하게 출력
+            throw new RuntimeException("프로필 이미지 저장 중 오류가 발생했습니다.", e);
         }
-
-        // 3) 변경된 엔티티 저장
-        User updated = userRepository.save(user);
-
-        // 4) 응답 DTO 반환 (profileImageUrl 포함)
-        return UserResponseDto.builder()
-                .id(updated.getId())
-                .email(updated.getEmail())
-                .username(updated.getUsername())
-                .birthdate(updated.getBirthdate())
-                .phoneNumber(updated.getPhoneNumber())
-                .profileImageUrl(updated.getProfileImageUrl())
-                .build();
+    } else {
+        System.out.println("⚠ 프로필 이미지가 없음 또는 비어있음");
     }
+
+    User updated = userRepository.save(user);
+    System.out.println("✅ 사용자 정보 저장 완료");
+
+    return UserResponseDto.builder()
+            .id(updated.getId())
+            .email(updated.getEmail())
+            .username(updated.getUsername())
+            .birthdate(updated.getBirthdate())
+            .phoneNumber(updated.getPhoneNumber())
+            .profileImageUrl(updated.getProfileImageUrl())
+            .build();
+}
+
 }
