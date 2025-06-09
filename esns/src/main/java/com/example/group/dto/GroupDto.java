@@ -18,4 +18,5 @@ public class GroupDto {
     private String tags;
     private String emotion;
     private LocalDateTime createdAt;
+    private String profileImageUrl;
 }

@@ -10,6 +10,8 @@ import com.example.auth.jwt.JwtUtil;
 import com.example.user_account.dto.UserResponseDto;
 import com.example.user_account.dto.UserSignupRequest;
 import com.example.user_account.service.UserService;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.example.user_account.dto.UserUpdateRequest;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -115,23 +117,27 @@ public class UserAccountController {
       @ApiResponse(responseCode = "401", description = "권한 없음"),
       @ApiResponse(responseCode = "404", description = "회원이 존재하지 않음")
     })
-    @PutMapping(
-      value = "/{id}",
-      consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
-    public ResponseEntity<UserResponseDto> updateProfile(
-            @PathVariable Long id,
-            @RequestPart("data") @Valid UserUpdateRequest request,
-            @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
-            HttpServletRequest httpRequest
-    ) {
-        // JWT 검증 → 토큰에서 얻은 사용자 이메일과 경로변수 ID의 사용자 이메일 비교
-        String token = extractTokenFromHeader(httpRequest);
-        String email = jwtUtil.extractEmail(token);
-        userService.verifyEmailMatchesId(email, id);
+  @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  public ResponseEntity<UserResponseDto> updateProfile(
+        @PathVariable Long id,
+        @RequestPart("data") String data,
+        @RequestPart(value = "profileImage", required = false) MultipartFile profileImage,
+        HttpServletRequest httpRequest
+  ) throws JsonProcessingException {
+      String token = extractTokenFromHeader(httpRequest);
+      String email = jwtUtil.extractEmail(token);
+      userService.verifyEmailMatchesId(email, id);
 
-        request.setProfileImage(profileImage);
-        UserResponseDto updated = userService.updateUser(id, request);
-        return ResponseEntity.ok(updated);
-    }
+      //로그 삽입: 프론트에서 보내는 값 확인
+    System.out.println("📩 받은 data(JSON 문자열): " + data);
+    System.out.println("📩 받은 profileImage: " + (profileImage != null ? profileImage.getOriginalFilename() : "없음"));
+    System.out.println("📩 profileImage ContentType: " + (profileImage != null ? profileImage.getContentType() : "없음"));
+
+      // JSON 문자열을 DTO로 변환
+      ObjectMapper objectMapper = new ObjectMapper();
+      UserUpdateRequest request = objectMapper.readValue(data, UserUpdateRequest.class);
+
+      UserResponseDto updated = userService.updateUser(id, request, profileImage);
+      return ResponseEntity.ok(updated);
+  }
 }

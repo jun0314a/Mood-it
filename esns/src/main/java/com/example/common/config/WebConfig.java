@@ -37,5 +37,8 @@ public class WebConfig implements WebMvcConfigurer {
         // 2) 스토리 이미지 (/story-images/**) 요청을 storyUploadDir로 매핑
         registry.addResourceHandler("/story-images/**")
                 .addResourceLocations("file:" + storyUploadDir);
+
+        registry.addResourceHandler("/uploads/**")
+                .addResourceLocations("file:///C:/Users/bm161/Mood-it/esns/uploads/");
     }
 }

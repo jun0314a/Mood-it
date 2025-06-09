@@ -158,7 +158,7 @@ public class UserService {
     /**
      * ③ 프로필(이름·이미지) 수정
      */
-    public UserResponseDto updateUser(Long id, UserUpdateRequest request) {
+    public UserResponseDto updateUser(Long id, UserUpdateRequest request, MultipartFile profileImage) {
         User user = userRepository.findById(id)
             .orElseThrow(() -> new IllegalArgumentException("해당 회원이 없습니다. id=" + id));
 
@@ -166,7 +166,6 @@ public class UserService {
         user.setUsername(request.getUsername());
 
         // 2) 프로필 이미지 변경 로직 추가
-        MultipartFile profileImage = request.getProfileImage();
         if (profileImage != null && !profileImage.isEmpty()) {
             try {
                 // (a) 원본 파일명에서 확장자 추출

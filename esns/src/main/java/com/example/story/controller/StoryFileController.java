@@ -21,7 +21,7 @@ import java.util.UUID;
 @RequestMapping("/api/story-files")
 public class StoryFileController {
 
-    @Value("${upload.path}")
+    @Value("${file.upload-dir.story}")
     private String uploadDir;
 
     @Operation(
@@ -55,9 +55,10 @@ public class StoryFileController {
             Path targetPath = Paths.get(uploadDir).resolve(filename);
             Files.copy(file.getInputStream(), targetPath, StandardCopyOption.REPLACE_EXISTING);
 
-            String imageUrl = "/uploads/" + filename;
+            String imageUrl = "/uploads/story/" + filename;
             return ResponseEntity.ok(imageUrl);
         } catch (IOException e) {
+            e.printStackTrace();
             return ResponseEntity
                 .status(500)
                 .body("파일 업로드 실패: " + e.getMessage());

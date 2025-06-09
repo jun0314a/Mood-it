@@ -199,6 +199,7 @@ public class GroupServiceImpl implements GroupService {
                 .tags(group.getTags())
                 .emotion(group.getEmotion().name())
                 .createdAt(group.getCreatedAt())
+                .profileImageUrl(group.getProfileImageUrl())
                 .build();
     }
 
