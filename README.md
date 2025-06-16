@@ -44,6 +44,32 @@
   <img src="https://img.shields.io/badge/Notion-000000?style=for-the-badge&logo=notion&logoColor=white">
 </p>
 
+### 기술 스택 상세 (Detailed Technologies)
+
+**▶ 백엔드 핵심 기술 (Backend Core Technologies)**
+* **Java 21 + Spring Boot (Gradle)**: MSA(Microservice Architecture) 기반의 API 서버를 견고하게 구축하기 위한 메인 개발 언어 및 프레임워크입니다.
+* **Spring Security + JWT**: 안전한 사용자 인증(로그인, 회원가입) 및 인가(권한 관리)를 구현하여 RESTful API 보안을 강화했습니다.
+* **Redis**: 이메일 인증 코드 저장, 캐싱 등 휘발성 데이터 및 빠른 접근이 필요한 데이터를 관리하여 시스템 성능을 최적화했습니다.
+
+**▶ 데이터베이스 & ORM (Database & ORM)**
+* **MySQL**: 사용자 정보, 게시글, 콘텐츠 메타데이터 등 모든 관계형 데이터를 저장하고 관리합니다.
+* **JPA (Hibernate)**: 객체지향적인 방식으로 데이터베이스를 조작하기 위해 사용된 ORM(Object-Relational Mapping) 프레임워크로, 생산성 향상에 기여했습니다.
+
+**▶ AI 및 외부 API 연동 (AI & External API Integration)**
+* **ChatGPT API**: 사용자의 감정을 분석하고, 추천 콘텐츠에 대한 설명을 생성하는 핵심 AI 기능에 활용했습니다.
+* **TMDB API**: 영화/드라마 콘텐츠 정보를 가져와 사용자에게 추천하는 기능을 구현하는 데 사용했습니다.
+
+**▶ API 문서화 및 테스트 (API Documentation & Testing)**
+* **Swagger (Springdoc OpenAPI)**: 개발된 REST API의 명세를 자동으로 생성하고 시각화하여 프론트엔드 개발자와의 협업 효율을 높였습니다.
+* **Postman**: 개발된 API 엔드포인트의 정확성과 응답을 테스트하고 검증하는 데 사용했습니다.
+
+**▶ 개발 도구 및 협업 (Development Tools & Collaboration)**
+* **VS Code**: 프론트엔드 및 백엔드 개발을 위한 통합 개발 환경(IDE)으로 사용했습니다.
+* **Git + GitHub**: 소스 코드의 버전 관리와 팀원 간의 협업을 위해 활용했습니다.
+* **Notion**: 프로젝트 기획, 요구사항 정의, 회의록 작성, 작업 관리 등 전반적인 프로젝트 문서화 및 팀 협업 도구로 사용했습니다.
+
+---
+
 **▶ AI 및 외부 API**
 
 * **ChatGPT API**: 자연어 처리 기반 감정 분석 및 추천 콘텐츠 설명 생성
