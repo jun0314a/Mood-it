@@ -35,7 +35,8 @@ public class PostService {
     private final AdminPostRepository postRepository;
     private final AdminUserRepository userRepository;
     
-    @Value("${file.upload-dir.story}")
+    // 관리자 게시글 전용 업로드 디렉터리 사용
+    @Value("${file.upload-dir.admin-post}")
     private String uploadDir;
 
     @Transactional
@@ -131,6 +132,7 @@ public class PostService {
         }
         File uploadFile = new File(uploadDirFile, fileName);
         imageFile.transferTo(uploadFile);
-        return "/uploads/story/" + fileName;
+        // WebConfig가 /uploads/** 를 루트로 매핑하므로 하위 폴더 경로를 그대로 반환
+        return "/uploads/admin-post/" + fileName;
     }
 }
