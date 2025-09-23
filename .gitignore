@@ -1,0 +1,36 @@
+### Gradle ###
+.gradle/
+/build/
+bin/
+
+### IDE ###
+.idea/
+.vscode/
+*.iml
+
+### Log files ###
+*.log
+
+### Spring Boot ###
+# Compiled class files
+*.class
+
+# Packaged files
+*.jar
+*.war
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven build artifacts (Gradle project but good to have)
+target/
+
+# User uploaded files
+/uploads/
+
+### Configuration Files ###
+# Secrets and sensitive data
+src/main/resources/application.properties
+src/main/resources/*.yml
+!src/main/resources/application-common.yml
