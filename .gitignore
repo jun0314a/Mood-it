@@ -30,7 +30,6 @@ target/
 /uploads/
 
 ### Configuration Files ###
-# Secrets and sensitive data
-src/main/resources/application.properties
+application.properties
 src/main/resources/*.yml
 !src/main/resources/application-common.yml
